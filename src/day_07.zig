@@ -7,6 +7,12 @@ const print = std.debug.print;
 const Coords = struct {
     y: usize,
     x: usize,
+    fn left(self: *const Coords) Coords {
+        return Coords{ .y = self.y, .x = self.x - 1 };
+    }
+    fn right(self: *const Coords) Coords {
+        return Coords{ .y = self.y, .x = self.x + 1 };
+    }
 };
 
 pub fn main() !void {
@@ -24,29 +30,26 @@ pub fn main() !void {
 }
 
 fn possiblePaths(gpa: std.mem.Allocator, grid: [][]u8, start: Coords, acc: *std.AutoHashMap(Coords, u64)) !u64 {
-    const worlds = 1;
     var y = start.y;
-    while (true) : (y += 1) {
-        if (Grid.gett(grid, y, start.x)) |char| {
-            switch (char) {
-                '^' => {
-                    const current = Coords{ .x = start.x, .y = y };
-                    if (acc.get(current)) |cached| {
-                        return worlds * cached;
-                    } else {
-                        const left = try possiblePaths(gpa, grid, Coords{ .x = start.x - 1, .y = y }, acc);
-                        const right = try possiblePaths(gpa, grid, Coords{ .x = start.x + 1, .y = y }, acc);
-                        const subWorlds = (left + right) * worlds;
+    while (Grid.gett(grid, y, start.x)) |char| : (y += 1) {
+        switch (char) {
+            '^' => {
+                const current = Coords{ .x = start.x, .y = y };
+                if (acc.get(current)) |cached| {
+                    return cached;
+                } else {
+                    const left = try possiblePaths(gpa, grid, current.left(), acc);
+                    const right = try possiblePaths(gpa, grid, current.right(), acc);
+                    const subWorlds = (left + right);
 
-                        try acc.put(Coords{ .x = start.x, .y = y }, subWorlds);
+                    try acc.put(current, subWorlds);
 
-                        return (left + right) * worlds;
-                    }
-                },
-                else => continue,
-            }
-        } else {
-            return 1;
+                    return subWorlds;
+                }
+            },
+            else => continue,
         }
     }
+
+    return 1;
 }
