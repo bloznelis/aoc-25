@@ -24,6 +24,15 @@ pub fn getNeighbors(grid: [][]u8, y: i32, x: i32) [8]?u8 {
     };
 }
 
+
+pub fn gett(grid: [][]u8, y: usize, x: usize) ?u8 {
+    if (getOrNull([]u8, grid, y)) |row| {
+        return getOrNull(u8, row, x);
+    } else {
+        return null;
+    }
+}
+
 pub fn get(grid: [][]u8, y: i32, x: i32) ?u8 {
     const xx: usize = if (x >= 0) @intCast(x) else return null;
     const yy: usize = if (y >= 0) @intCast(y) else return null;
